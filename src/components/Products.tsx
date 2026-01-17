@@ -18,11 +18,7 @@ export function Products() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-          throw new Error("Impossible de récupérer les produits.");
-        }
-        const data: ApiResponse = await response.json();
+        const data = await fetchProducts();
         if (isMounted) {
           setProducts(data.results ?? []);
         }
@@ -133,6 +129,24 @@ export function Products() {
 }
 
 const API_URL = "https://samr.pythonanywhere.com/api/products/";
+const PROXY_URL = "https://api.allorigins.win/raw?url=";
+
+const fetchProducts = async () => {
+  try {
+    const response = await fetch(API_URL);
+    if (response.ok) {
+      return (await response.json()) as ApiResponse;
+    }
+  } catch {
+    // Ignore and fall back to proxy.
+  }
+
+  const proxyResponse = await fetch(`${PROXY_URL}${encodeURIComponent(API_URL)}`);
+  if (!proxyResponse.ok) {
+    throw new Error("Impossible de récupérer les produits.");
+  }
+  return (await proxyResponse.json()) as ApiResponse;
+};
 
 type ApiProduct = {
   id: number;
