@@ -132,7 +132,7 @@ export function Products() {
   );
 }
 
-const API_URL = "https://same.pythonanywhere.com/api/products/";
+const API_URL = "https://samr.pythonanywhere.com/api/products/";
 
 type ApiProduct = {
   id: number;
