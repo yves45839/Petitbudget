@@ -129,15 +129,29 @@ export function Products() {
 }
 
 const API_URL = "https://samr.pythonanywhere.com/api/products/";
+const PROXY_URLS = [
+  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+];
 
 const fetchProducts = async (): Promise<ApiProduct[]> => {
-  const response = await fetch(API_URL);
-  if (!response.ok) {
-    throw new Error("Impossible de récupérer les produits.");
+  const urlsToTry = [API_URL, ...PROXY_URLS.map((buildUrl) => buildUrl(API_URL))];
+
+  for (const url of urlsToTry) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        continue;
+      }
+
+      const payload = (await response.json()) as ApiResponse | ApiProduct[];
+      return normalizeProducts(payload);
+    } catch {
+      // Ignore and try the next endpoint.
+    }
   }
 
-  const payload = (await response.json()) as ApiResponse | ApiProduct[];
-  return normalizeProducts(payload);
+  throw new Error("Impossible de récupérer les produits pour le moment.");
 };
 
 const normalizeProducts = (
