@@ -6,6 +6,7 @@ export function Products() {
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mediaBaseUrl, setMediaBaseUrl] = useState<string>(window.location.origin);
   const priceFormatter = useMemo(
     () => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }),
     [],
@@ -18,9 +19,11 @@ export function Products() {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await fetchProducts();
+        const { products: loadedProducts, mediaBaseUrl: resolvedMediaBaseUrl } =
+          await fetchProducts();
         if (isMounted) {
-          setProducts(data);
+          setProducts(loadedProducts);
+          setMediaBaseUrl(resolvedMediaBaseUrl);
         }
       } catch (caughtError) {
         if (isMounted) {
@@ -59,7 +62,7 @@ export function Products() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map((product) => {
               const imageUrl = product.image_url
-                ? new URL(product.image_url, API_URL).toString()
+                ? new URL(product.image_url, mediaBaseUrl).toString()
                 : undefined;
               const priceLabel = priceFormatter.format(
                 Number(product.sale_price ?? 0),
@@ -128,14 +131,23 @@ export function Products() {
   );
 }
 
-const API_URL = "https://samr.pythonanywhere.com/api/products/";
+const API_URLS = ["/api/products/", "https://samr.pythonanywhere.com/api/products/"];
 const PROXY_URLS = [
-  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) =>
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
   (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
 ];
 
-const fetchProducts = async (): Promise<ApiProduct[]> => {
-  const urlsToTry = [API_URL, ...PROXY_URLS.map((buildUrl) => buildUrl(API_URL))];
+type ProductsResult = {
+  products: ApiProduct[];
+  mediaBaseUrl: string;
+};
+
+const fetchProducts = async (): Promise<ProductsResult> => {
+  const urlsToTry = [
+    ...API_URLS,
+    ...PROXY_URLS.map((buildUrl) => buildUrl(API_URLS[1])),
+  ];
 
   for (const url of urlsToTry) {
     try {
@@ -145,7 +157,9 @@ const fetchProducts = async (): Promise<ApiProduct[]> => {
       }
 
       const payload = (await response.json()) as ApiResponse | ApiProduct[];
-      return normalizeProducts(payload);
+      const products = normalizeProducts(payload);
+      const mediaBaseUrl = new URL(url, window.location.origin).origin;
+      return { products, mediaBaseUrl };
     } catch {
       // Ignore and try the next endpoint.
     }
