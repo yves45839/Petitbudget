@@ -131,11 +131,38 @@ export function Products() {
   );
 }
 
-const API_URLS = ["/api/products/", "https://samr.pythonanywhere.com/api/products/"];
-const PROXY_URLS = [
-  (url: string) =>
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+const REMOTE_API_URL = "https://samr.pythonanywhere.com/api/products/";
+const REMOTE_MEDIA_BASE_URL = new URL(REMOTE_API_URL).origin;
+
+const API_SOURCES: Array<{
+  url: string;
+  mediaBaseUrl: string;
+  parser: "json" | "text";
+}> = [
+  {
+    url: "/api/products/?page_size=24",
+    mediaBaseUrl: window.location.origin,
+    parser: "json",
+  },
+  {
+    url: `${REMOTE_API_URL}?page_size=24`,
+    mediaBaseUrl: REMOTE_MEDIA_BASE_URL,
+    parser: "json",
+  },
+  {
+    url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(
+      `${REMOTE_API_URL}?page_size=24`,
+    )}`,
+    mediaBaseUrl: REMOTE_MEDIA_BASE_URL,
+    parser: "text",
+  },
+  {
+    url: `https://corsproxy.io/?${encodeURIComponent(
+      `${REMOTE_API_URL}?page_size=24`,
+    )}`,
+    mediaBaseUrl: REMOTE_MEDIA_BASE_URL,
+    parser: "text",
+  },
 ];
 
 type ProductsResult = {
@@ -144,22 +171,21 @@ type ProductsResult = {
 };
 
 const fetchProducts = async (): Promise<ProductsResult> => {
-  const urlsToTry = [
-    ...API_URLS,
-    ...PROXY_URLS.map((buildUrl) => buildUrl(API_URLS[1])),
-  ];
-
-  for (const url of urlsToTry) {
+  for (const source of API_SOURCES) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(source.url);
       if (!response.ok) {
         continue;
       }
 
-      const payload = (await response.json()) as ApiResponse | ApiProduct[];
+      const payload =
+        source.parser === "json"
+          ? ((await response.json()) as ApiResponse | ApiProduct[])
+          : (JSON.parse(await response.text()) as ApiResponse | ApiProduct[]);
       const products = normalizeProducts(payload);
-      const mediaBaseUrl = new URL(url, window.location.origin).origin;
-      return { products, mediaBaseUrl };
+      if (products.length > 0) {
+        return { products, mediaBaseUrl: source.mediaBaseUrl };
+      }
     } catch {
       // Ignore and try the next endpoint.
     }
