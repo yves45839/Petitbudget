@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart, MessageCircle } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { ApiProduct, fetchProducts } from "../lib/products";
 
-export function Products() {
+type ProductsProps = {
+  onProductClick: (productId: number) => void;
+};
+
+export function Products({ onProductClick }: ProductsProps) {
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,9 +74,11 @@ export function Products() {
               );
               const inStock = product.stock_quantity > 0;
               return (
-                <div
+                <button
                   key={product.id}
-                  className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-gray-100"
+                  type="button"
+                  onClick={() => onProductClick(product.id)}
+                  className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-gray-100 text-left"
                 >
                   <div className="relative aspect-square bg-gray-100 rounded-3xl m-4">
                     <ImageWithFallback
@@ -87,9 +94,7 @@ export function Products() {
                   </div>
 
                   <div className="p-6">
-                    <h3 className="text-lg mb-2 line-clamp-2 h-14">
-                      {product.name}
-                    </h3>
+                    <h3 className="text-lg mb-2 line-clamp-2 h-14">{product.name}</h3>
                     <p className="text-sm text-gray-500 mb-4">
                       Ref : {product.sku || product.barcode || "N/A"}
                     </p>
@@ -107,21 +112,21 @@ export function Products() {
 
                     {inStock ? (
                       <div className="flex gap-2">
-                        <button className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                        <span className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
                           <ShoppingCart className="w-5 h-5" />
                           Ajouter
-                        </button>
-                        <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-full hover:shadow-lg transition-all">
+                        </span>
+                        <span className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-full hover:shadow-lg transition-all">
                           <MessageCircle className="w-5 h-5" />
-                        </button>
+                        </span>
                       </div>
                     ) : (
-                      <button className="w-full bg-gray-300 text-gray-600 py-3 rounded-full cursor-not-allowed">
+                      <span className="w-full bg-gray-300 text-gray-600 py-3 rounded-full cursor-not-allowed block text-center">
                         Rupture de stock
-                      </button>
+                      </span>
                     )}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -130,100 +135,3 @@ export function Products() {
     </section>
   );
 }
-
-const REMOTE_API_URL = "https://samr.pythonanywhere.com/api/products/";
-const REMOTE_MEDIA_BASE_URL = new URL(REMOTE_API_URL).origin;
-
-const API_SOURCES: Array<{
-  url: string;
-  mediaBaseUrl: string;
-  parser: "json" | "text";
-}> = [
-  {
-    url: "/api/products/?page_size=24",
-    mediaBaseUrl: window.location.origin,
-    parser: "json",
-  },
-  {
-    url: `${REMOTE_API_URL}?page_size=24`,
-    mediaBaseUrl: REMOTE_MEDIA_BASE_URL,
-    parser: "json",
-  },
-  {
-    url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(
-      `${REMOTE_API_URL}?page_size=24`,
-    )}`,
-    mediaBaseUrl: REMOTE_MEDIA_BASE_URL,
-    parser: "text",
-  },
-  {
-    url: `https://corsproxy.io/?${encodeURIComponent(
-      `${REMOTE_API_URL}?page_size=24`,
-    )}`,
-    mediaBaseUrl: REMOTE_MEDIA_BASE_URL,
-    parser: "text",
-  },
-];
-
-type ProductsResult = {
-  products: ApiProduct[];
-  mediaBaseUrl: string;
-};
-
-const fetchProducts = async (): Promise<ProductsResult> => {
-  for (const source of API_SOURCES) {
-    try {
-      const response = await fetch(source.url);
-      if (!response.ok) {
-        continue;
-      }
-
-      const payload =
-        source.parser === "json"
-          ? ((await response.json()) as ApiResponse | ApiProduct[])
-          : (JSON.parse(await response.text()) as ApiResponse | ApiProduct[]);
-      const products = normalizeProducts(payload);
-      if (products.length > 0) {
-        return { products, mediaBaseUrl: source.mediaBaseUrl };
-      }
-    } catch {
-      // Ignore and try the next endpoint.
-    }
-  }
-
-  throw new Error("Impossible de récupérer les produits pour le moment.");
-};
-
-const normalizeProducts = (
-  payload: ApiResponse | ApiProduct[],
-): ApiProduct[] => {
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-
-  if (Array.isArray(payload.results)) {
-    return payload.results;
-  }
-
-  return [];
-};
-
-type ApiProduct = {
-  id: number;
-  sku: string | null;
-  name: string;
-  description: string | null;
-  brand: string | null;
-  category: string | null;
-  barcode: string | null;
-  sale_price: string | null;
-  purchase_price: string | null;
-  stock_quantity: number;
-  image_url: string | null;
-  updated_at: string;
-};
-
-type ApiResponse = {
-  count: number;
-  results: ApiProduct[];
-};
