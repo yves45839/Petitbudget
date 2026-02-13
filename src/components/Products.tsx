@@ -16,6 +16,33 @@ export function Products({ onProductClick }: ProductsProps) {
     () => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }),
     [],
   );
+  const groupedProducts = useMemo(() => {
+    const collator = new Intl.Collator("fr", { sensitivity: "base" });
+    const byBrand = new Map<string, Map<string, ApiProduct[]>>();
+
+    for (const product of products) {
+      const brand = product.brand?.trim() || "Sans marque";
+      const category = product.category?.trim() || "Autres catégories";
+      const brandBucket = byBrand.get(brand) ?? new Map<string, ApiProduct[]>();
+      const categoryBucket = brandBucket.get(category) ?? [];
+
+      categoryBucket.push(product);
+      brandBucket.set(category, categoryBucket);
+      byBrand.set(brand, brandBucket);
+    }
+
+    return Array.from(byBrand.entries())
+      .sort(([brandA], [brandB]) => collator.compare(brandA, brandB))
+      .map(([brand, categories]) => ({
+        brand,
+        categories: Array.from(categories.entries())
+          .sort(([categoryA], [categoryB]) => collator.compare(categoryA, categoryB))
+          .map(([category, categoryProducts]) => ({
+            category,
+            products: categoryProducts,
+          })),
+      }));
+  }, [products]);
 
   useEffect(() => {
     let isMounted = true;
@@ -64,71 +91,82 @@ export function Products({ onProductClick }: ProductsProps) {
         ) : error ? (
           <div className="text-center text-red-600 py-12">{error}</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => {
-              const imageUrl = product.image_url
-                ? new URL(product.image_url, mediaBaseUrl).toString()
-                : undefined;
-              const priceLabel = priceFormatter.format(
-                Number(product.sale_price ?? 0),
-              );
-              const inStock = product.stock_quantity > 0;
-              return (
-                <button
-                  key={product.id}
-                  type="button"
-                  onClick={() => onProductClick(product.id)}
-                  className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-gray-100 text-left"
-                >
-                  <div className="relative aspect-square bg-gray-100 rounded-3xl m-4">
-                    <ImageWithFallback
-                      src={imageUrl}
-                      alt={product.name}
-                      className="w-full h-full object-cover rounded-3xl"
-                    />
-                    {product.brand && (
-                      <div className="absolute top-4 left-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-full text-sm">
-                        {product.brand}
-                      </div>
-                    )}
-                  </div>
+          <div className="space-y-10">
+            {groupedProducts.map((brandGroup) => (
+              <section key={brandGroup.brand} className="space-y-5">
+                <h3 className="text-2xl border-b border-gray-200 pb-2">{brandGroup.brand}</h3>
 
-                  <div className="p-6">
-                    <h3 className="text-lg mb-2 line-clamp-2 h-14">{product.name}</h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Ref : {product.sku || product.barcode || "N/A"}
-                    </p>
+                {brandGroup.categories.map((categoryGroup) => (
+                  <div key={`${brandGroup.brand}-${categoryGroup.category}`} className="space-y-4">
+                    <h4 className="text-lg text-gray-700">{categoryGroup.category}</h4>
 
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-3xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                        {priceLabel}
-                      </span>
-                      <span className="text-sm text-gray-600">FCFA</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {categoryGroup.products.map((product) => {
+                        const imageUrl = product.image_url
+                          ? new URL(product.image_url, mediaBaseUrl).toString()
+                          : undefined;
+                        const priceLabel = priceFormatter.format(
+                          Number(product.sale_price ?? 0),
+                        );
+                        const inStock = product.stock_quantity > 0;
+                        return (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => onProductClick(product.id)}
+                            className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-gray-100 text-left"
+                          >
+                            <div className="relative aspect-square bg-gray-100 rounded-3xl m-4">
+                              <ImageWithFallback
+                                src={imageUrl}
+                                alt={product.name}
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full h-full object-cover rounded-3xl"
+                              />
+                            </div>
+
+                            <div className="p-6">
+                              <h3 className="text-lg mb-2 line-clamp-2 h-14">{product.name}</h3>
+                              <p className="text-sm text-gray-500 mb-4">
+                                Ref : {product.sku || product.barcode || "N/A"}
+                              </p>
+
+                              <div className="flex items-baseline gap-2 mb-2">
+                                <span className="text-3xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                                  {priceLabel}
+                                </span>
+                                <span className="text-sm text-gray-600">FCFA</span>
+                              </div>
+
+                              <p className="text-sm text-gray-500 mb-4">
+                                Stock : {product.stock_quantity}
+                              </p>
+
+                              {inStock ? (
+                                <div className="flex gap-2">
+                                  <span className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                                    <ShoppingCart className="w-5 h-5" />
+                                    Ajouter
+                                  </span>
+                                  <span className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-full hover:shadow-lg transition-all">
+                                    <MessageCircle className="w-5 h-5" />
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="w-full bg-gray-300 text-gray-600 py-3 rounded-full cursor-not-allowed block text-center">
+                                  Rupture de stock
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
-
-                    <p className="text-sm text-gray-500 mb-4">
-                      Stock : {product.stock_quantity}
-                    </p>
-
-                    {inStock ? (
-                      <div className="flex gap-2">
-                        <span className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                          <ShoppingCart className="w-5 h-5" />
-                          Ajouter
-                        </span>
-                        <span className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-full hover:shadow-lg transition-all">
-                          <MessageCircle className="w-5 h-5" />
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="w-full bg-gray-300 text-gray-600 py-3 rounded-full cursor-not-allowed block text-center">
-                        Rupture de stock
-                      </span>
-                    )}
                   </div>
-                </button>
-              );
-            })}
+                ))}
+              </section>
+            ))}
           </div>
         )}
       </div>
