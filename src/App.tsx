@@ -8,8 +8,10 @@ import { Footer } from "./components/Footer";
 import { WhatsAppButton } from "./components/WhatsAppButton";
 import { ProductDetailPage } from "./components/ProductDetailPage";
 
-const getProductIdFromPath = (pathname: string): number | null => {
-  const matches = pathname.match(/^\/produits\/(\d+)\/?$/);
+const PRODUCT_ROUTE_PATTERN = /^\/produits\/(\d+)\/?$/;
+
+const getProductIdFromRoute = (route: string): number | null => {
+  const matches = route.match(PRODUCT_ROUTE_PATTERN);
   if (!matches) {
     return null;
   }
@@ -17,29 +19,39 @@ const getProductIdFromPath = (pathname: string): number | null => {
   return Number(matches[1]);
 };
 
+const getCurrentRoute = () => {
+  if (window.location.hash.startsWith("#/")) {
+    return window.location.hash.slice(1);
+  }
+
+  return window.location.pathname;
+};
+
 export default function App() {
-  const [pathname, setPathname] = useState(window.location.pathname);
+  const [route, setRoute] = useState(getCurrentRoute());
 
   useEffect(() => {
-    const handleNavigation = () => setPathname(window.location.pathname);
+    const handleNavigation = () => setRoute(getCurrentRoute());
     window.addEventListener("popstate", handleNavigation);
+    window.addEventListener("hashchange", handleNavigation);
 
     return () => {
       window.removeEventListener("popstate", handleNavigation);
+      window.removeEventListener("hashchange", handleNavigation);
     };
   }, []);
 
-  const selectedProductId = useMemo(() => getProductIdFromPath(pathname), [pathname]);
+  const selectedProductId = useMemo(() => getProductIdFromRoute(route), [route]);
 
   const goToProductDetail = (productId: number) => {
-    window.history.pushState({}, "", `/produits/${productId}`);
-    setPathname(window.location.pathname);
+    window.history.pushState({}, "", `/#/produits/${productId}`);
+    setRoute(getCurrentRoute());
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const goToHome = () => {
-    window.history.pushState({}, "", "/");
-    setPathname(window.location.pathname);
+    window.history.pushState({}, "", "/#/");
+    setRoute(getCurrentRoute());
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
