@@ -105,9 +105,11 @@ export function Products({ onProductClick }: ProductsProps) {
                         const imageUrl = product.image_url
                           ? new URL(product.image_url, mediaBaseUrl).toString()
                           : undefined;
+                        const priceValue = Number(product.sale_price ?? 0);
                         const priceLabel = priceFormatter.format(
-                          Number(product.sale_price ?? 0),
+                          priceValue,
                         );
+                        const requiresPriceRequest = priceValue !== 50;
                         const inStock = product.stock_quantity > 0;
                         return (
                           <button
@@ -132,23 +134,34 @@ export function Products({ onProductClick }: ProductsProps) {
                                 Ref : {product.sku || product.barcode || "N/A"}
                               </p>
 
-                              <div className="flex items-baseline gap-2 mb-2">
-                                <span className="text-3xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                                  {priceLabel}
-                                </span>
-                                <span className="text-sm text-gray-600">FCFA</span>
-                              </div>
-
-                              <p className="text-sm text-gray-500 mb-4">
-                                Stock : {product.stock_quantity}
-                              </p>
+                              {requiresPriceRequest ? (
+                                <div className="mb-4">
+                                  <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700">
+                                    Demande de prix
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex items-baseline gap-2 mb-4">
+                                  <span className="text-3xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                                    {priceLabel}
+                                  </span>
+                                  <span className="text-sm text-gray-600">FCFA</span>
+                                </div>
+                              )}
 
                               {inStock ? (
                                 <div className="flex gap-2">
-                                  <span className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                                    <ShoppingCart className="w-5 h-5" />
-                                    Ajouter
-                                  </span>
+                                  {requiresPriceRequest ? (
+                                    <span className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                                      <MessageCircle className="w-5 h-5" />
+                                      Demande de prix
+                                    </span>
+                                  ) : (
+                                    <span className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                                      <ShoppingCart className="w-5 h-5" />
+                                      Ajouter
+                                    </span>
+                                  )}
                                   <span className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-full hover:shadow-lg transition-all">
                                     <MessageCircle className="w-5 h-5" />
                                   </span>
