@@ -45,6 +45,7 @@ export type ApiProduct = {
   stock_quantity: number;
   image_url: string | null;
   online?: boolean | number | string | null;
+  is_online?: boolean | number | string | null;
   updated_at: string;
 };
 
@@ -83,17 +84,27 @@ export const fetchProducts = async (): Promise<ProductsResult> => {
 };
 
 const normalizeProducts = (payload: ApiResponse | ApiProduct[]): ApiProduct[] => {
-  const isOnline = (product: ApiProduct) => {
-    if (typeof product.online === "boolean") {
+  const getOnlineFlag = (product: ApiProduct): boolean | number | string | null | undefined => {
+    if (product.online !== undefined) {
       return product.online;
     }
 
-    if (typeof product.online === "number") {
-      return product.online === 1;
+    return product.is_online;
+  };
+
+  const isOnline = (product: ApiProduct) => {
+    const onlineFlag = getOnlineFlag(product);
+
+    if (typeof onlineFlag === "boolean") {
+      return onlineFlag;
     }
 
-    if (typeof product.online === "string") {
-      const normalizedOnline = product.online.trim().toLowerCase();
+    if (typeof onlineFlag === "number") {
+      return onlineFlag === 1;
+    }
+
+    if (typeof onlineFlag === "string") {
+      const normalizedOnline = onlineFlag.trim().toLowerCase();
       return ["1", "true", "yes", "on"].includes(normalizedOnline);
     }
 
