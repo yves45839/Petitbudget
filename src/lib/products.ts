@@ -44,6 +44,7 @@ export type ApiProduct = {
   purchase_price: string | null;
   stock_quantity: number;
   image_url: string | null;
+  online?: boolean | number | string | null;
   updated_at: string;
 };
 
@@ -82,12 +83,29 @@ export const fetchProducts = async (): Promise<ProductsResult> => {
 };
 
 const normalizeProducts = (payload: ApiResponse | ApiProduct[]): ApiProduct[] => {
+  const isOnline = (product: ApiProduct) => {
+    if (typeof product.online === "boolean") {
+      return product.online;
+    }
+
+    if (typeof product.online === "number") {
+      return product.online === 1;
+    }
+
+    if (typeof product.online === "string") {
+      const normalizedOnline = product.online.trim().toLowerCase();
+      return ["1", "true", "yes", "on"].includes(normalizedOnline);
+    }
+
+    return false;
+  };
+
   if (Array.isArray(payload)) {
-    return payload;
+    return payload.filter(isOnline);
   }
 
   if (Array.isArray(payload.results)) {
-    return payload.results;
+    return payload.results.filter(isOnline);
   }
 
   return [];
