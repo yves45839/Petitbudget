@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, MessageCircle, ShoppingCart } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileText, MessageCircle, ShoppingCart } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ApiProduct, fetchProducts } from "../lib/products";
 import { getDisplayPrices } from "../lib/pricing";
@@ -69,6 +69,16 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   const priceValue = Number(product?.sale_price ?? 0);
   const requiresPriceRequest = priceValue < 50;
   const { displayPrice, originalPrice } = getDisplayPrices(priceValue);
+  const description = product?.description?.trim() ?? "";
+  const isSupportedBrand =
+    product?.brand !== null && ["hikvision", "dahua"].includes(product.brand.trim().toLowerCase());
+  const datasheetPdfUrl =
+    isSupportedBrand && description
+      ? extractPdfUrl(description, mediaBaseUrl)
+      : null;
+  const descriptionWithoutPdfLink = description
+    ? removeUrlFromText(description, datasheetPdfUrl)
+    : "";
 
   return (
     <section className="py-12 bg-gradient-to-br from-gray-50 to-white min-h-[70vh]">
@@ -132,9 +142,29 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                 </div>
               )}
 
-              <p className="text-gray-700 mb-6">
-                {product.description || "Aucune description disponible pour ce produit."}
-              </p>
+              <div className="mb-6 space-y-4">
+                <p className="text-gray-700 whitespace-pre-line">
+                  {descriptionWithoutPdfLink || "Aucune description disponible pour ce produit."}
+                </p>
+
+                {datasheetPdfUrl && (
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                    <p className="text-sm font-medium text-blue-900 mb-3">
+                      Documentation technique fabricant
+                    </p>
+                    <a
+                      href={datasheetPdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800 transition-colors"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Voir la fiche technique (PDF)
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </div>
+                )}
+              </div>
 
 
               {inStock ? (
@@ -166,3 +196,36 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
     </section>
   );
 }
+
+const PDF_URL_PATTERN = /(https?:\/\/[^\s)"']+)/gi;
+
+const extractPdfUrl = (description: string, baseUrl: string): string | null => {
+  const matches = description.match(PDF_URL_PATTERN);
+  if (!matches) {
+    return null;
+  }
+
+  for (const candidateUrl of matches) {
+    try {
+      const normalizedUrl = new URL(candidateUrl, baseUrl);
+      if (normalizedUrl.pathname.toLowerCase().endsWith(".pdf")) {
+        return normalizedUrl.toString();
+      }
+    } catch {
+      // Ignore malformed URL and continue with next candidate.
+    }
+  }
+
+  return null;
+};
+
+const removeUrlFromText = (description: string, pdfUrl: string | null): string => {
+  if (!pdfUrl) {
+    return description;
+  }
+
+  return description
+    .replace(pdfUrl, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};
