@@ -66,7 +66,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
     : undefined;
   const inStock = (product?.stock_quantity ?? 0) > 0;
   const priceValue = Number(product?.sale_price ?? 0);
-  const requiresPriceRequest = priceValue !== 50;
+  const requiresPriceRequest = priceValue < 50;
 
   return (
     <section className="py-12 bg-gradient-to-br from-gray-50 to-white min-h-[70vh]">

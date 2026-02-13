@@ -109,7 +109,7 @@ export function Products({ onProductClick }: ProductsProps) {
                         const priceLabel = priceFormatter.format(
                           priceValue,
                         );
-                        const requiresPriceRequest = priceValue !== 50;
+                        const requiresPriceRequest = priceValue < 50;
                         const inStock = product.stock_quantity > 0;
                         return (
                           <button
