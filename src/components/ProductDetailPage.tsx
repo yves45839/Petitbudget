@@ -65,6 +65,8 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
     ? new URL(product.image_url, mediaBaseUrl).toString()
     : undefined;
   const inStock = (product?.stock_quantity ?? 0) > 0;
+  const priceValue = Number(product?.sale_price ?? 0);
+  const requiresPriceRequest = priceValue !== 50;
 
   return (
     <section className="py-12 bg-gradient-to-br from-gray-50 to-white min-h-[70vh]">
@@ -105,25 +107,39 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                 Référence : {product.sku || product.barcode || "N/A"}
               </p>
 
-              <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-4xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                  {priceFormatter.format(Number(product.sale_price ?? 0))}
-                </span>
-                <span className="text-gray-600">FCFA</span>
-              </div>
+              {requiresPriceRequest ? (
+                <div className="mb-6">
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700">
+                    Demande de prix
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-2 mb-6">
+                  <span className="text-4xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                    {priceFormatter.format(priceValue)}
+                  </span>
+                  <span className="text-gray-600">FCFA</span>
+                </div>
+              )}
 
               <p className="text-gray-700 mb-6">
                 {product.description || "Aucune description disponible pour ce produit."}
               </p>
 
-              <p className="text-sm text-gray-600 mb-6">Stock disponible : {product.stock_quantity}</p>
 
               {inStock ? (
                 <div className="flex gap-3">
-                  <button className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                    <ShoppingCart className="w-5 h-5" />
-                    Ajouter au panier
-                  </button>
+                  {requiresPriceRequest ? (
+                    <button className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                      <MessageCircle className="w-5 h-5" />
+                      Demande de prix
+                    </button>
+                  ) : (
+                    <button className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                      <ShoppingCart className="w-5 h-5" />
+                      Ajouter au panier
+                    </button>
+                  )}
                   <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-full hover:shadow-lg transition-all">
                     <MessageCircle className="w-5 h-5" />
                   </button>
