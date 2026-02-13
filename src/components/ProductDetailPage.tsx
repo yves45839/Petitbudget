@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, MessageCircle, ShoppingCart } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ApiProduct, fetchProducts } from "../lib/products";
+import { getDisplayPrices } from "../lib/pricing";
 
 type ProductDetailPageProps = {
   productId: number;
@@ -67,6 +68,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   const inStock = (product?.stock_quantity ?? 0) > 0;
   const priceValue = Number(product?.sale_price ?? 0);
   const requiresPriceRequest = priceValue < 50;
+  const { displayPrice, originalPrice } = getDisplayPrices(priceValue);
 
   return (
     <section className="py-12 bg-gradient-to-br from-gray-50 to-white min-h-[70vh]">
@@ -114,11 +116,19 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                   </span>
                 </div>
               ) : (
-                <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-4xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                    {priceFormatter.format(priceValue)}
-                  </span>
-                  <span className="text-gray-600">FCFA</span>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xl text-gray-400 line-through">
+                      {priceFormatter.format(originalPrice)}
+                    </span>
+                    <span className="text-sm text-gray-500">FCFA</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                      {priceFormatter.format(displayPrice)}
+                    </span>
+                    <span className="text-gray-600">FCFA</span>
+                  </div>
                 </div>
               )}
 
