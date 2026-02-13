@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart, MessageCircle } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ApiProduct, fetchProducts } from "../lib/products";
+import { getDisplayPrices } from "../lib/pricing";
 
 type ProductsProps = {
   onProductClick: (productId: number) => void;
@@ -106,9 +107,9 @@ export function Products({ onProductClick }: ProductsProps) {
                           ? new URL(product.image_url, mediaBaseUrl).toString()
                           : undefined;
                         const priceValue = Number(product.sale_price ?? 0);
-                        const priceLabel = priceFormatter.format(
-                          priceValue,
-                        );
+                        const { displayPrice, originalPrice } = getDisplayPrices(priceValue);
+                        const priceLabel = priceFormatter.format(displayPrice);
+                        const originalPriceLabel = priceFormatter.format(originalPrice);
                         const requiresPriceRequest = priceValue < 50;
                         const inStock = product.stock_quantity > 0;
                         return (
@@ -141,11 +142,19 @@ export function Products({ onProductClick }: ProductsProps) {
                                   </span>
                                 </div>
                               ) : (
-                                <div className="flex items-baseline gap-2 mb-4">
-                                  <span className="text-3xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                                    {priceLabel}
-                                  </span>
-                                  <span className="text-sm text-gray-600">FCFA</span>
+                                <div className="mb-4">
+                                  <div className="flex items-baseline gap-2">
+                                    <span className="text-lg text-gray-400 line-through">
+                                      {originalPriceLabel}
+                                    </span>
+                                    <span className="text-xs text-gray-500">FCFA</span>
+                                  </div>
+                                  <div className="flex items-baseline gap-2">
+                                    <span className="text-3xl bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                                      {priceLabel}
+                                    </span>
+                                    <span className="text-sm text-gray-600">FCFA</span>
+                                  </div>
                                 </div>
                               )}
 
