@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart, MessageCircle } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { ApiProduct, fetchProducts } from "../lib/products";
+import { ApiProduct, fetchProducts, resolveAssetUrl } from "../lib/products";
 import { getDisplayPrices } from "../lib/pricing";
 
 type ProductsProps = {
@@ -104,7 +104,7 @@ export function Products({ onProductClick }: ProductsProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       {categoryGroup.products.map((product) => {
                         const imageUrl = product.image_url
-                          ? new URL(product.image_url, mediaBaseUrl).toString()
+                          ? resolveAssetUrl(product.image_url, mediaBaseUrl)
                           : undefined;
                         const priceValue = Number(product.sale_price ?? 0);
                         const { displayPrice, originalPrice } = getDisplayPrices(priceValue);

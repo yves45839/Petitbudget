@@ -52,6 +52,8 @@ export type ApiProduct = {
 type ApiResponse = {
   count: number;
   results: ApiProduct[];
+  next?: string | null;
+  previous?: string | null;
 };
 
 export type ProductsResult = {
@@ -75,12 +77,75 @@ const fetchFromSource = async (
       ? ((await response.json()) as ApiResponse | ApiProduct[])
       : (JSON.parse(await response.text()) as ApiResponse | ApiProduct[]);
   const products = normalizeProducts(payload);
+  const mediaBaseUrl = inferMediaBaseUrl(payload, source.mediaBaseUrl);
 
   if (products.length === 0) {
     throw new Error(`Aucun produit disponible sur ${source.url}`);
   }
 
-  return { products, mediaBaseUrl: source.mediaBaseUrl };
+  return { products, mediaBaseUrl };
+};
+
+const inferMediaBaseUrl = (
+  payload: ApiResponse | ApiProduct[],
+  fallbackMediaBaseUrl: string,
+): string => {
+  if (Array.isArray(payload)) {
+    return fallbackMediaBaseUrl;
+  }
+
+  const paginationCandidates = [payload.next, payload.previous];
+  for (const candidate of paginationCandidates) {
+    if (!candidate) {
+      continue;
+    }
+
+    try {
+      return new URL(candidate).origin;
+    } catch {
+      // Ignore malformed URL and keep searching.
+    }
+  }
+
+  const firstImageUrl = payload.results.find((product) => Boolean(product.image_url))?.image_url;
+  if (firstImageUrl) {
+    try {
+      const maybeAbsoluteImageUrl = new URL(firstImageUrl);
+      return maybeAbsoluteImageUrl.origin;
+    } catch {
+      // Relative image URL, fallback to provided base URL.
+    }
+  }
+
+  return fallbackMediaBaseUrl;
+};
+
+export const resolveAssetUrl = (
+  rawAssetUrl: string | null | undefined,
+  mediaBaseUrl: string,
+): string | undefined => {
+  if (!rawAssetUrl) {
+    return undefined;
+  }
+
+  const cleanedUrl = rawAssetUrl.trim();
+  if (!cleanedUrl) {
+    return undefined;
+  }
+
+  const normalizedRawUrl = cleanedUrl.startsWith("//") ? `https:${cleanedUrl}` : cleanedUrl;
+
+  try {
+    const resolvedUrl = new URL(normalizedRawUrl, mediaBaseUrl);
+
+    if (window.location.protocol === "https:" && resolvedUrl.protocol === "http:") {
+      resolvedUrl.protocol = "https:";
+    }
+
+    return resolvedUrl.toString();
+  } catch {
+    return undefined;
+  }
 };
 
 export const fetchProducts = async (): Promise<ProductsResult> => {

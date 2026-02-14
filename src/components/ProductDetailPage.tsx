@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, FileText, MessageCircle, ShoppingCart } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { ApiProduct, fetchProducts } from "../lib/products";
+import { ApiProduct, fetchProducts, resolveAssetUrl } from "../lib/products";
 import { getDisplayPrices } from "../lib/pricing";
 
 type ProductDetailPageProps = {
@@ -72,7 +72,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   }, [productId]);
 
   const imageUrl = product?.image_url
-    ? new URL(product.image_url, mediaBaseUrl).toString()
+    ? resolveAssetUrl(product.image_url, mediaBaseUrl)
     : undefined;
   const inStock = (product?.stock_quantity ?? 0) > 0;
   const priceValue = Number(product?.sale_price ?? 0);
