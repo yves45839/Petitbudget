@@ -5,7 +5,7 @@ import { ApiProduct, fetchProducts } from "../lib/products";
 import { getDisplayPrices } from "../lib/pricing";
 
 type ProductsProps = {
-  onProductClick: (productId: number) => void;
+  onProductClick: (productId: number, productReference: string) => void;
 };
 
 export function Products({ onProductClick }: ProductsProps) {
@@ -116,7 +116,12 @@ export function Products({ onProductClick }: ProductsProps) {
                           <button
                             key={product.id}
                             type="button"
-                            onClick={() => onProductClick(product.id)}
+                            onClick={() =>
+                              onProductClick(
+                                product.id,
+                                product.sku || product.barcode || product.name,
+                              )
+                            }
                             className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-gray-100 text-left"
                           >
                             <div className="relative aspect-square bg-gray-100 rounded-3xl m-4">

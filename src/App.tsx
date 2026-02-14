@@ -8,7 +8,15 @@ import { Footer } from "./components/Footer";
 import { WhatsAppButton } from "./components/WhatsAppButton";
 import { ProductDetailPage } from "./components/ProductDetailPage";
 
-const PRODUCT_ROUTE_PATTERN = /^\/produits\/(\d+)\/?$/;
+const PRODUCT_ROUTE_PATTERN = /^\/produits\/(\d+)(?:-[^/]+)?\/?$/;
+
+const toSlug = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const getProductIdFromRoute = (route: string): number | null => {
   const matches = route.match(PRODUCT_ROUTE_PATTERN);
@@ -43,8 +51,9 @@ export default function App() {
 
   const selectedProductId = useMemo(() => getProductIdFromRoute(route), [route]);
 
-  const goToProductDetail = (productId: number) => {
-    window.history.pushState({}, "", `/#/produits/${productId}`);
+  const goToProductDetail = (productId: number, productReference: string) => {
+    const referenceSlug = toSlug(productReference) || "sans-reference";
+    window.history.pushState({}, "", `/#/produits/${productId}-${referenceSlug}`);
     setRoute(getCurrentRoute());
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
