@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ExternalLink, FileText, MessageCircle, ShoppingCart } from "lucide-react";
+import { ArrowLeft, FileText, MessageCircle, ShoppingCart } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ApiProduct, fetchProducts } from "../lib/products";
 import { getDisplayPrices } from "../lib/pricing";
@@ -91,10 +91,6 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   const descriptionWithoutPdfLink = description
     ? removeUrlFromText(description, datasheetPdfUrl)
     : "";
-  const marginValue =
-    Number.isFinite(priceValue) && Number.isFinite(purchasePrice) && purchasePrice > 0
-      ? priceValue - purchasePrice
-      : null;
   const lastUpdateLabel =
     product?.updated_at && !Number.isNaN(Date.parse(product.updated_at))
       ? dateFormatter.format(new Date(product.updated_at))
@@ -135,24 +131,10 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
 
               <h1 className="text-3xl mb-2">{product.name}</h1>
 
-              <p className="text-gray-500 mb-4">
-                Référence : {product.sku || product.barcode || "N/A"}
-              </p>
-
               <div className="mb-6 grid grid-cols-2 gap-3 text-sm">
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <p className="text-gray-500">Catégorie</p>
                   <p className="font-medium text-gray-900">{product.category || "Non renseignée"}</p>
-                </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
-                  <p className="text-gray-500">Disponibilité</p>
-                  <p className={`font-medium ${inStock ? "text-green-700" : "text-red-600"}`}>
-                    {inStock ? `${product.stock_quantity} en stock` : "Rupture"}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
-                  <p className="text-gray-500">Code-barres</p>
-                  <p className="font-medium text-gray-900">{product.barcode || "Non renseigné"}</p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <p className="text-gray-500">Dernière mise à jour</p>
@@ -197,38 +179,13 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                       href={datasheetPdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-800 transition-colors"
+                      className="inline-flex items-center gap-2 text-sm text-blue-700 underline break-all hover:text-blue-900"
                     >
                       <FileText className="h-4 w-4" />
-                      Voir la fiche technique (PDF)
-                      <ExternalLink className="h-4 w-4" />
+                      {datasheetPdfUrl}
                     </a>
                   </div>
                 )}
-              </div>
-
-              <div className="mb-6 rounded-2xl border border-gray-200 p-4">
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Attributs techniques
-                </h2>
-                <dl className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-2">
-                    <dt className="text-gray-500">SKU</dt>
-                    <dd className="font-medium text-gray-900">{product.sku || "Non renseigné"}</dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-2">
-                    <dt className="text-gray-500">Prix d'achat</dt>
-                    <dd className="font-medium text-gray-900">
-                      {purchasePrice > 0 ? `${priceFormatter.format(purchasePrice)} FCFA` : "Non disponible"}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <dt className="text-gray-500">Marge estimée</dt>
-                    <dd className={`font-medium ${marginValue !== null && marginValue > 0 ? "text-green-700" : "text-gray-900"}`}>
-                      {marginValue !== null ? `${priceFormatter.format(marginValue)} FCFA` : "Non disponible"}
-                    </dd>
-                  </div>
-                </dl>
               </div>
 
 
