@@ -1,4 +1,6 @@
 import { Phone, Mail, MapPin, Facebook, Instagram, Twitter } from "lucide-react";
+import { BRAND_ASSETS, BRAND_NAME } from "../lib/branding";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 export function Footer() {
   return (
@@ -7,9 +9,16 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* About */}
           <div>
-            <h3 className="text-xl mb-4 bg-gradient-to-r from-blue-400 to-red-400 bg-clip-text text-transparent">
-              Petit Budget
-            </h3>
+            <div className="mb-4 flex items-center gap-3">
+              <ImageWithFallback
+                src={BRAND_ASSETS.logoSquare}
+                alt={`Logo ${BRAND_NAME}`}
+                className="h-10 w-10 rounded-lg bg-white/10 p-1 object-contain"
+              />
+              <h3 className="text-xl bg-gradient-to-r from-blue-400 to-red-400 bg-clip-text text-transparent">
+                {BRAND_NAME}
+              </h3>
+            </div>
             <p className="text-gray-300 text-sm mb-4">
               Spécialiste de la vidéosurveillance et de la sécurité. Nous proposons les meilleures marques à prix compétitifs.
             </p>
