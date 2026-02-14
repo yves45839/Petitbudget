@@ -91,6 +91,12 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   const descriptionWithoutPdfLink = description
     ? removeUrlFromText(description, datasheetPdfUrl)
     : "";
+  const normalizedDescription = harmonizeDescriptionPrice(
+    descriptionWithoutPdfLink,
+    displayPrice,
+    requiresPriceRequest,
+    priceFormatter,
+  );
   const lastUpdateLabel =
     product?.updated_at && !Number.isNaN(Date.parse(product.updated_at))
       ? dateFormatter.format(new Date(product.updated_at))
@@ -167,7 +173,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
 
               <div className="mb-6 space-y-4">
                 <p className="text-gray-700 whitespace-pre-line">
-                  {descriptionWithoutPdfLink || "Aucune description disponible pour ce produit."}
+                  {normalizedDescription || "Aucune description disponible pour ce produit."}
                 </p>
 
                 {datasheetPdfUrl && (
@@ -250,4 +256,21 @@ const removeUrlFromText = (description: string, pdfUrl: string | null): string =
     .replace(pdfUrl, "")
     .replace(/\s{2,}/g, " ")
     .trim();
+};
+
+const PRICE_IN_TEXT_PATTERN = /\b\d{1,3}(?:[\s.,]\d{3})*(?:\s*FCFA)\b/gi;
+
+const harmonizeDescriptionPrice = (
+  description: string,
+  displayPrice: number,
+  requiresPriceRequest: boolean,
+  formatter: Intl.NumberFormat,
+): string => {
+  if (!description || requiresPriceRequest || !Number.isFinite(displayPrice) || displayPrice <= 0) {
+    return description;
+  }
+
+  const canonicalPrice = `${formatter.format(displayPrice)} FCFA`;
+
+  return description.replace(PRICE_IN_TEXT_PATTERN, canonicalPrice);
 };
