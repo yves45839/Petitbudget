@@ -70,8 +70,10 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   const requiresPriceRequest = priceValue < 50;
   const { displayPrice, originalPrice } = getDisplayPrices(priceValue);
   const description = product?.description?.trim() ?? "";
-  const isSupportedBrand =
-    product?.brand !== null && ["hikvision", "dahua"].includes(product.brand.trim().toLowerCase());
+  const normalizedBrand = product?.brand?.trim().toLowerCase();
+  const isSupportedBrand = Boolean(
+    normalizedBrand && ["hikvision", "dahua"].includes(normalizedBrand),
+  );
   const datasheetPdfUrl =
     isSupportedBrand && description
       ? extractPdfUrl(description, mediaBaseUrl)
