@@ -1,6 +1,7 @@
 import { ShoppingCart, Search, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ApiProduct, fetchProducts } from "../lib/products";
+import { BRAND_ASSETS, BRAND_NAME } from "../lib/branding";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 type HeaderProps = {
@@ -63,11 +64,18 @@ export function Header({ onSearch }: HeaderProps) {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center gap-2">
-            <div className="rounded-2xl bg-white px-6 py-3 shadow-md">
-              <h1 className="bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-2xl text-transparent">
-                Petit Budget
-              </h1>
-              <p className="text-xs text-gray-600">La sécurité n'est plus un luxe</p>
+            <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-md">
+              <ImageWithFallback
+                src={BRAND_ASSETS.logo}
+                alt={`Logo ${BRAND_NAME}`}
+                className="h-12 w-auto object-contain"
+              />
+              <div>
+                <h1 className="bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-2xl text-transparent">
+                  {BRAND_NAME}
+                </h1>
+                <p className="text-xs text-gray-600">La sécurité n'est plus un luxe</p>
+              </div>
             </div>
           </div>
 
