@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, FileText, MessageCircle, ShoppingCart } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileText, MessageCircle, ShoppingCart } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ApiProduct, fetchProducts } from "../lib/products";
 import { getDisplayPrices } from "../lib/pricing";
@@ -80,14 +80,8 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   const requiresPriceRequest = priceValue < 50;
   const { displayPrice, originalPrice } = getDisplayPrices(priceValue);
   const description = product?.description?.trim() ?? "";
-  const normalizedBrand = product?.brand?.trim().toLowerCase();
-  const isSupportedBrand = Boolean(
-    normalizedBrand && ["hikvision", "dahua"].includes(normalizedBrand),
-  );
   const datasheetPdfUrl =
-    isSupportedBrand && description
-      ? extractPdfUrl(description, mediaBaseUrl)
-      : null;
+    description ? extractPdfUrl(description, mediaBaseUrl) : null;
   const descriptionWithoutPdfLink = description
     ? removeUrlFromText(description, datasheetPdfUrl)
     : "";
@@ -181,15 +175,24 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                     <p className="text-sm font-medium text-blue-900 mb-3">
                       Documentation technique fabricant
                     </p>
-                    <a
-                      href={datasheetPdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-blue-700 underline break-all hover:text-blue-900"
-                    >
-                      <FileText className="h-4 w-4" />
-                      {datasheetPdfUrl}
-                    </a>
+                    <div className="space-y-3">
+                      <a
+                        href={datasheetPdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-blue-700 underline break-all hover:text-blue-900"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Ouvrir la fiche technique dans un nouvel onglet
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+
+                      <iframe
+                        title={`Fiche technique ${product.name}`}
+                        src={datasheetPdfUrl}
+                        className="h-[520px] w-full rounded-xl border border-blue-200 bg-white"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -225,7 +228,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   );
 }
 
-const PDF_URL_PATTERN = /(https?:\/\/[^\s)"']+)/gi;
+const PDF_URL_PATTERN = /(?:https?:\/\/[^\s)"']+|www\.[^\s)"']+|\/[^\s)"']*\.pdf[^\s)"']*|[^\s)"']+\.pdf[^\s)"']*)/gi;
 
 const extractPdfUrl = (description: string, baseUrl: string): string | null => {
   const matches = description.match(PDF_URL_PATTERN);
@@ -235,7 +238,10 @@ const extractPdfUrl = (description: string, baseUrl: string): string | null => {
 
   for (const candidateUrl of matches) {
     try {
-      const normalizedUrl = new URL(candidateUrl, baseUrl);
+      const candidateWithProtocol = candidateUrl.startsWith("www.")
+        ? `https://${candidateUrl}`
+        : candidateUrl;
+      const normalizedUrl = new URL(candidateWithProtocol, baseUrl);
       if (normalizedUrl.pathname.toLowerCase().endsWith(".pdf")) {
         return normalizedUrl.toString();
       }
