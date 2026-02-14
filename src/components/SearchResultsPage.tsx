@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { ApiProduct, fetchProducts } from "../lib/products";
+import { ApiProduct, fetchProducts, resolveAssetUrl } from "../lib/products";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { getDisplayPrices } from "../lib/pricing";
 
@@ -107,7 +107,7 @@ export function SearchResultsPage({
   }, [nameMatches, products, selectedProduct, selectedProductId]);
 
   const renderProductCard = (product: ApiProduct) => {
-    const imageUrl = product.image_url ? new URL(product.image_url, mediaBaseUrl).toString() : undefined;
+    const imageUrl = product.image_url ? resolveAssetUrl(product.image_url, mediaBaseUrl) : undefined;
     const priceValue = Number(product.sale_price ?? 0);
     const { displayPrice } = getDisplayPrices(priceValue);
     const priceLabel = priceFormatter.format(displayPrice);

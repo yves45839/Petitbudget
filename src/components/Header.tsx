@@ -1,6 +1,6 @@
 import { ShoppingCart, Search, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { ApiProduct, fetchProducts } from "../lib/products";
+import { ApiProduct, fetchProducts, resolveAssetUrl } from "../lib/products";
 import { BRAND_ASSETS, BRAND_NAME } from "../lib/branding";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
@@ -109,7 +109,7 @@ export function Header({ onSearch }: HeaderProps) {
                 <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl">
                   {suggestions.map((product) => {
                     const imageUrl = product.image_url
-                      ? new URL(product.image_url, mediaBaseUrl).toString()
+                      ? resolveAssetUrl(product.image_url, mediaBaseUrl)
                       : undefined;
 
                     return (
