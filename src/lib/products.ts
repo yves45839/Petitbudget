@@ -59,28 +59,52 @@ export type ProductsResult = {
   mediaBaseUrl: string;
 };
 
-export const fetchProducts = async (): Promise<ProductsResult> => {
-  for (const source of API_SOURCES) {
-    try {
-      const response = await fetch(source.url);
-      if (!response.ok) {
-        continue;
-      }
+let productsCache: ProductsResult | null = null;
+let productsPromise: Promise<ProductsResult> | null = null;
 
-      const payload =
-        source.parser === "json"
-          ? ((await response.json()) as ApiResponse | ApiProduct[])
-          : (JSON.parse(await response.text()) as ApiResponse | ApiProduct[]);
-      const products = normalizeProducts(payload);
-      if (products.length > 0) {
-        return { products, mediaBaseUrl: source.mediaBaseUrl };
-      }
-    } catch {
-      // Ignore and try the next endpoint.
-    }
+const fetchFromSource = async (
+  source: (typeof API_SOURCES)[number],
+): Promise<ProductsResult> => {
+  const response = await fetch(source.url);
+  if (!response.ok) {
+    throw new Error(`Source indisponible: ${source.url}`);
   }
 
-  throw new Error("Impossible de récupérer les produits pour le moment.");
+  const payload =
+    source.parser === "json"
+      ? ((await response.json()) as ApiResponse | ApiProduct[])
+      : (JSON.parse(await response.text()) as ApiResponse | ApiProduct[]);
+  const products = normalizeProducts(payload);
+
+  if (products.length === 0) {
+    throw new Error(`Aucun produit disponible sur ${source.url}`);
+  }
+
+  return { products, mediaBaseUrl: source.mediaBaseUrl };
+};
+
+export const fetchProducts = async (): Promise<ProductsResult> => {
+  if (productsCache) {
+    return productsCache;
+  }
+
+  if (!productsPromise) {
+    const sourcesToTry = [...API_SOURCES];
+
+    productsPromise = Promise.any(sourcesToTry.map((source) => fetchFromSource(source)))
+      .then((result) => {
+        productsCache = result;
+        return result;
+      })
+      .catch(() => {
+        throw new Error("Impossible de récupérer les produits pour le moment.");
+      })
+      .finally(() => {
+        productsPromise = null;
+      });
+  }
+
+  return productsPromise;
 };
 
 const normalizeProducts = (payload: ApiResponse | ApiProduct[]): ApiProduct[] => {

@@ -44,7 +44,7 @@ export function Header() {
             </button>
             <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-full shadow-md hover:shadow-lg transition-all relative">
               <ShoppingCart className="w-5 h-5" />
-              <span>{cartCount},00 €</span>
+              <span>{cartCount},00</span>
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
                   {cartCount}

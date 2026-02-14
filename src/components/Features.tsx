@@ -1,4 +1,4 @@
-import { Wrench, RotateCcw, CreditCard } from "lucide-react";
+import { Wrench, Truck, ShieldCheck } from "lucide-react";
 
 export function Features() {
   return (
@@ -21,36 +21,36 @@ export function Features() {
             <p className="text-gray-600">non surtaxé</p>
           </div>
 
-          {/* 28 jours */}
+          {/* Livraison Abidjan */}
           <div className="bg-gradient-to-br from-red-50 to-white p-8 rounded-3xl shadow-lg border-2 border-red-100">
             <div className="flex items-start gap-4 mb-4">
               <div className="bg-gradient-to-br from-red-600 to-red-700 p-4 rounded-2xl">
-                <RotateCcw className="w-10 h-10 text-white" />
+                <Truck className="w-10 h-10 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl mb-2">28 jours</h3>
-                <h3 className="text-2xl mb-2">pour changer</h3>
-                <h3 className="text-2xl mb-4">d'avis</h3>
+                <h3 className="text-2xl mb-2">Livraison</h3>
+                <h3 className="text-2xl mb-2">rapide sur</h3>
+                <h3 className="text-2xl mb-4">Abidjan</h3>
               </div>
             </div>
-            <p className="text-gray-600">délai de rétractation</p>
-            <p className="text-gray-600">étendu de 14 à 28 jours</p>
+            <p className="text-gray-600">expédition locale</p>
+            <p className="text-gray-600">suivi de commande inclus</p>
           </div>
 
-          {/* Paiement */}
+          {/* Produits certifiés */}
           <div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-3xl shadow-lg border-2 border-blue-100">
             <div className="flex items-start gap-4 mb-4">
               <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-4 rounded-2xl">
-                <CreditCard className="w-10 h-10 text-white" />
+                <ShieldCheck className="w-10 h-10 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl mb-2">Paiement</h3>
-                <h3 className="text-2xl mb-2">en plusieurs</h3>
-                <h3 className="text-2xl mb-4">fois</h3>
+                <h3 className="text-2xl mb-2">Produits</h3>
+                <h3 className="text-2xl mb-2">testés et</h3>
+                <h3 className="text-2xl mb-4">validés</h3>
               </div>
             </div>
-            <p className="text-gray-600">4x sans frais</p>
-            <p className="text-gray-600">avec PayPal</p>
+            <p className="text-gray-600">qualité vérifiée</p>
+            <p className="text-gray-600">avant expédition</p>
           </div>
         </div>
       </div>
