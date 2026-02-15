@@ -1,19 +1,43 @@
-import { ShoppingCart, Search, User } from "lucide-react";
+import { ShoppingCart, Search, User, Plus, Minus, MessageCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ApiProduct, fetchProducts, resolveAssetUrl } from "../lib/products";
 import { BRAND_ASSETS, BRAND_NAME } from "../lib/branding";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-type HeaderProps = {
-  onSearch: (query: string, productId?: number) => void;
+type HeaderCartItem = {
+  productId: number;
+  reference: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
 };
 
-export function Header({ onSearch }: HeaderProps) {
-  const [cartCount] = useState(0);
+type HeaderProps = {
+  onSearch: (query: string, productId?: number) => void;
+  cartItems: HeaderCartItem[];
+  cartCount: number;
+  onUpdateCartQuantity: (productId: number, quantity: number) => void;
+  onConfirmCart: () => void;
+};
+
+export function Header({
+  onSearch,
+  cartItems,
+  cartCount,
+  onUpdateCartQuantity,
+  onConfirmCart,
+}: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [mediaBaseUrl, setMediaBaseUrl] = useState(window.location.origin);
   const [isOpen, setIsOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const formatter = useMemo(() => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }), []);
+  const cartTotal = useMemo(
+    () => cartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
+    [cartItems],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -144,20 +168,87 @@ export function Header({ onSearch }: HeaderProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="relative flex items-center gap-4">
             <button className="flex items-center gap-2 rounded-full bg-white px-6 py-3 shadow-md transition-all hover:shadow-lg">
               <User className="h-5 w-5 text-blue-600" />
               <span className="text-sm">Compte</span>
             </button>
-            <button className="relative flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-3 text-white shadow-md transition-all hover:shadow-lg">
+            <button
+              type="button"
+              onClick={() => setIsCartOpen((current) => !current)}
+              className="relative flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-3 text-white shadow-md transition-all hover:shadow-lg"
+            >
               <ShoppingCart className="h-5 w-5" />
-              <span>{cartCount},00</span>
+              <span>Panier</span>
               {cartCount > 0 && (
                 <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
                   {cartCount}
                 </span>
               )}
             </button>
+
+            {isCartOpen && (
+              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[360px] rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-2xl">
+                <h3 className="mb-3 text-lg">Votre panier</h3>
+                {cartItems.length === 0 ? (
+                  <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">Votre panier est vide.</p>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="max-h-72 space-y-2 overflow-auto pr-1">
+                      {cartItems.map((item) => (
+                        <div key={item.productId} className="rounded-xl border border-gray-200 p-3">
+                          <p className="line-clamp-1 text-sm font-medium">{item.name}</p>
+                          <p className="text-xs text-gray-500">Réf: {item.reference}</p>
+                          <p className="text-sm text-gray-700">
+                            {formatter.format(item.unitPrice)} FCFA / unité
+                          </p>
+                          <div className="mt-2 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => onUpdateCartQuantity(item.productId, item.quantity - 1)}
+                                className="rounded-full bg-gray-100 p-1 hover:bg-gray-200"
+                                aria-label={`Retirer une unité de ${item.name}`}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </button>
+                              <span className="w-6 text-center text-sm">{item.quantity}</span>
+                              <button
+                                type="button"
+                                onClick={() => onUpdateCartQuantity(item.productId, item.quantity + 1)}
+                                className="rounded-full bg-gray-100 p-1 hover:bg-gray-200"
+                                aria-label={`Ajouter une unité de ${item.name}`}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <p className="text-sm font-medium">
+                              {formatter.format(item.unitPrice * item.quantity)} FCFA
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="border-t border-gray-200 pt-3">
+                      <p className="mb-3 text-sm font-medium">
+                        Total estimé: {formatter.format(cartTotal)} FCFA
+                      </p>
+                      <button
+                        type="button"
+                        onClick={onConfirmCart}
+                        className="w-full rounded-full bg-gradient-to-r from-green-500 to-green-600 px-4 py-3 text-white transition hover:shadow-lg"
+                      >
+                        <span className="inline-flex items-center justify-center gap-2">
+                          <MessageCircle className="h-5 w-5" />
+                          Confirmer sur WhatsApp
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

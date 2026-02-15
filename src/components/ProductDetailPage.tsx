@@ -12,9 +12,15 @@ import { getDisplayPrices } from "../lib/pricing";
 type ProductDetailPageProps = {
   productId: number;
   onBack: () => void;
+  onAddToCart: (item: {
+    productId: number;
+    reference: string;
+    name: string;
+    unitPrice: number;
+  }) => void;
 };
 
-export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps) {
+export function ProductDetailPage({ productId, onBack, onAddToCart }: ProductDetailPageProps) {
   const [product, setProduct] = useState<ApiProduct | null>(null);
   const [mediaBaseUrl, setMediaBaseUrl] = useState<string>(window.location.origin);
   const [isLoading, setIsLoading] = useState(true);
@@ -235,7 +241,19 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                       Demande de prix
                     </a>
                   ) : (
-                    <button className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        product &&
+                        onAddToCart({
+                          productId: product.id,
+                          reference: productReference,
+                          name: product.name,
+                          unitPrice: displayPrice,
+                        })
+                      }
+                      className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
                       <ShoppingCart className="w-5 h-5" />
                       Ajouter au panier
                     </button>
