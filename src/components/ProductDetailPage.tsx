@@ -258,7 +258,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                   className="w-full bg-gray-900 text-white py-3 rounded-full inline-flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-5 h-5" />
-                  Être alerté du réassort
+                  Demander la disponibilité
                 </a>
               )}
 
