@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, FileText, MessageCircle, ShoppingCart } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { ApiProduct, fetchProducts, resolveAssetUrl } from "../lib/products";
+import {
+  ApiProduct,
+  fetchProducts,
+  resolveAssetUrl,
+  resolveDatasheetUrlFromProduct,
+} from "../lib/products";
 import { getDisplayPrices } from "../lib/pricing";
 
 type ProductDetailPageProps = {
@@ -81,7 +86,8 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
   const { displayPrice, originalPrice } = getDisplayPrices(priceValue);
   const description = product?.description?.trim() ?? "";
   const datasheetPdfUrl =
-    description ? extractPdfUrl(description, mediaBaseUrl) : null;
+    (product ? resolveDatasheetUrlFromProduct(product, mediaBaseUrl) : null) ||
+    (description ? extractPdfUrl(description, mediaBaseUrl) : null);
   const descriptionWithoutPdfLink = description
     ? removeUrlFromText(description, datasheetPdfUrl)
     : "";

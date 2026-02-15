@@ -44,6 +44,10 @@ export type ApiProduct = {
   purchase_price: string | null;
   stock_quantity: number;
   image_url: string | null;
+  technical_sheet_url?: string | null;
+  datasheet_url?: string | null;
+  fiche_technique_url?: string | null;
+  product_url?: string | null;
   online?: boolean | number | string | null;
   is_online?: boolean | number | string | null;
   updated_at: string;
@@ -146,6 +150,39 @@ export const resolveAssetUrl = (
   } catch {
     return undefined;
   }
+};
+
+const DATASHEET_PATH_HINTS = ["sheet", "datasheet", "fiche", "tech", "doc", "manual"];
+
+const isLikelyDatasheetUrl = (rawUrl: string): boolean => {
+  const lowerCasedUrl = rawUrl.toLowerCase();
+
+  if (lowerCasedUrl.includes(".pdf")) {
+    return true;
+  }
+
+  return DATASHEET_PATH_HINTS.some((hint) => lowerCasedUrl.includes(hint));
+};
+
+export const resolveDatasheetUrlFromProduct = (
+  product: ApiProduct,
+  mediaBaseUrl: string,
+): string | null => {
+  const candidateKeys = [
+    "technical_sheet_url",
+    "datasheet_url",
+    "fiche_technique_url",
+    "product_url",
+  ] as const;
+
+  for (const key of candidateKeys) {
+    const resolvedUrl = resolveAssetUrl(product[key], mediaBaseUrl);
+    if (resolvedUrl && isLikelyDatasheetUrl(resolvedUrl)) {
+      return resolvedUrl;
+    }
+  }
+
+  return null;
 };
 
 export const fetchProducts = async (): Promise<ProductsResult> => {
