@@ -112,16 +112,27 @@ export function Products({ onProductClick }: ProductsProps) {
                         const originalPriceLabel = priceFormatter.format(originalPrice);
                         const requiresPriceRequest = priceValue < 50;
                         const inStock = product.stock_quantity > 0;
+                        const productReference = product.sku || product.barcode || product.name;
+                        const whatsappMessage = encodeURIComponent(
+                          `Bonjour, je souhaite vérifier la disponibilité de ${product.name} (Réf: ${productReference}).`,
+                        );
+                        const whatsappUrl = `https://wa.me/2250758000045?text=${whatsappMessage}`;
+
+                        const openProductDetails = () => {
+                          onProductClick(product.id, productReference);
+                        };
                         return (
-                          <button
+                          <div
                             key={product.id}
-                            type="button"
-                            onClick={() =>
-                              onProductClick(
-                                product.id,
-                                product.sku || product.barcode || product.name,
-                              )
-                            }
+                            role="button"
+                            tabIndex={0}
+                            onClick={openProductDetails}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                openProductDetails();
+                              }
+                            }}
                             className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-gray-100 text-left"
                           >
                             <div className="relative aspect-square bg-gray-100 rounded-3xl m-4">
@@ -137,7 +148,7 @@ export function Products({ onProductClick }: ProductsProps) {
                             <div className="p-6">
                               <h3 className="text-lg mb-2 line-clamp-2 h-14">{product.name}</h3>
                               <p className="text-sm text-gray-500 mb-4">
-                                Ref : {product.sku || product.barcode || "N/A"}
+                                Ref : {productReference || "N/A"}
                               </p>
 
                               {requiresPriceRequest ? (
@@ -181,12 +192,19 @@ export function Products({ onProductClick }: ProductsProps) {
                                   </span>
                                 </div>
                               ) : (
-                                <span className="w-full bg-gray-300 text-gray-600 py-3 rounded-full cursor-not-allowed block text-center">
-                                  Rupture de stock
-                                </span>
+                                <a
+                                  href={whatsappUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-full inline-flex items-center justify-center gap-2"
+                                >
+                                  <MessageCircle className="w-5 h-5" />
+                                  Demander la disponibilité
+                                </a>
                               )}
                             </div>
-                          </button>
+                          </div>
                         );
                       })}
                     </div>

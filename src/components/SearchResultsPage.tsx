@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { MessageCircle, Search } from "lucide-react";
 import { ApiProduct, fetchProducts, resolveAssetUrl } from "../lib/products";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { getDisplayPrices } from "../lib/pricing";
@@ -111,20 +111,39 @@ export function SearchResultsPage({
     const priceValue = Number(product.sale_price ?? 0);
     const { displayPrice } = getDisplayPrices(priceValue);
     const priceLabel = priceFormatter.format(displayPrice);
+    const inStock = product.stock_quantity > 0;
+    const productReference = product.sku || product.barcode || product.name;
+    const whatsappMessage = encodeURIComponent(
+      `Bonjour, je souhaite vérifier la disponibilité de ${product.name} (Réf: ${productReference}).`,
+    );
+    const whatsappUrl = `https://wa.me/2250758000045?text=${whatsappMessage}`;
 
     return (
       <button
         key={product.id}
         type="button"
-        onClick={() => onProductClick(product.id, product.sku || product.barcode || product.name)}
+        onClick={() => onProductClick(product.id, productReference)}
         className="rounded-3xl border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:shadow-lg"
       >
         <div className="mb-3 aspect-square overflow-hidden rounded-2xl bg-gray-100">
           <ImageWithFallback src={imageUrl} alt={product.name} className="h-full w-full object-cover" />
         </div>
         <h3 className="line-clamp-2 text-sm">{product.name}</h3>
-        <p className="mt-2 text-xs text-gray-500">Ref : {product.sku || product.barcode || "N/A"}</p>
+        <p className="mt-2 text-xs text-gray-500">Ref : {productReference || "N/A"}</p>
         <p className="mt-2 text-base text-red-600">{priceValue < 50 ? "Demande de prix" : `${priceLabel} FCFA`}</p>
+
+        {!inStock && (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+            className="mt-3 w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-3 rounded-full inline-flex items-center justify-center gap-2 text-sm"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Demander la disponibilité
+          </a>
+        )}
       </button>
     );
   };
