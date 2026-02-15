@@ -1,6 +1,9 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Petit Budget",
+  "short_name": "PetitBudget",
+  "description": "Petit Budget - La sécurité n'est plus un luxe.",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -15,7 +18,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#ffffff",
+  "theme_color": "#1d4ed8",
   "background_color": "#ffffff",
   "display": "standalone"
 }
