@@ -101,6 +101,15 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
     product?.updated_at && !Number.isNaN(Date.parse(product.updated_at))
       ? dateFormatter.format(new Date(product.updated_at))
       : "Non disponible";
+  const productReference = product?.sku || product?.barcode || `Produit #${product?.id ?? productId}`;
+  const whatsappMessage = encodeURIComponent(
+    `Bonjour, je souhaite des informations sur ${product?.name ?? "ce produit"} (Réf: ${productReference}).`,
+  );
+  const whatsappUrl = `https://wa.me/2250758000045?text=${whatsappMessage}`;
+  const stockLabel =
+    (product?.stock_quantity ?? 0) > 0
+      ? `${product?.stock_quantity ?? 0} en stock`
+      : "Rupture de stock";
 
   return (
     <section className="py-12 bg-gradient-to-br from-gray-50 to-white min-h-[70vh]">
@@ -136,15 +145,24 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
               )}
 
               <h1 className="text-3xl mb-2">{product.name}</h1>
+              <p className="text-sm text-gray-500 mb-4">Réf : {productReference}</p>
 
-              <div className="mb-6 grid grid-cols-2 gap-3 text-sm">
+              <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <p className="text-gray-500">Catégorie</p>
                   <p className="font-medium text-gray-900">{product.category || "Non renseignée"}</p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
+                  <p className="text-gray-500">Disponibilité</p>
+                  <p className={`font-medium ${inStock ? "text-emerald-700" : "text-red-600"}`}>{stockLabel}</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <p className="text-gray-500">Dernière mise à jour</p>
                   <p className="font-medium text-gray-900">{lastUpdateLabel}</p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
+                  <p className="text-gray-500">Code-barres</p>
+                  <p className="font-medium text-gray-900">{product.barcode || "Non renseigné"}</p>
                 </div>
               </div>
 
@@ -207,24 +225,48 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
               {inStock ? (
                 <div className="flex gap-3">
                   {requiresPriceRequest ? (
-                    <button className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
                       <MessageCircle className="w-5 h-5" />
                       Demande de prix
-                    </button>
+                    </a>
                   ) : (
                     <button className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
                       <ShoppingCart className="w-5 h-5" />
                       Ajouter au panier
                     </button>
                   )}
-                  <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-full hover:shadow-lg transition-all">
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-full hover:shadow-lg transition-all inline-flex items-center justify-center"
+                    aria-label="Contacter le service commercial sur WhatsApp"
+                  >
                     <MessageCircle className="w-5 h-5" />
-                  </button>
+                  </a>
                 </div>
               ) : (
-                <button className="w-full bg-gray-300 text-gray-600 py-3 rounded-full cursor-not-allowed">
-                  Rupture de stock
-                </button>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-gray-900 text-white py-3 rounded-full inline-flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Être alerté du réassort
+                </a>
+              )}
+
+              {!inStock && (
+                <p className="mt-3 text-xs text-gray-500">
+                  Bon réflexe UX : proposer une alternative claire même en rupture (ici, contact rapide
+                  WhatsApp).
+                </p>
               )}
             </div>
           </div>
