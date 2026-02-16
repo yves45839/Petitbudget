@@ -30,15 +30,6 @@ export function ProductDetailPage({ productId, onBack, onAddToCart }: ProductDet
     () => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }),
     [],
   );
-  const dateFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat("fr-FR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      }),
-    [],
-  );
 
   useEffect(() => {
     let isMounted = true;
@@ -103,10 +94,6 @@ export function ProductDetailPage({ productId, onBack, onAddToCart }: ProductDet
     requiresPriceRequest,
     priceFormatter,
   );
-  const lastUpdateLabel =
-    product?.updated_at && !Number.isNaN(Date.parse(product.updated_at))
-      ? dateFormatter.format(new Date(product.updated_at))
-      : "Non disponible";
   const productReference = product?.sku || product?.barcode || `Produit #${product?.id ?? productId}`;
   const whatsappMessage = encodeURIComponent(
     `Bonjour, je souhaite des informations sur ${product?.name ?? "ce produit"} (Réf: ${productReference}).`,
@@ -114,7 +101,7 @@ export function ProductDetailPage({ productId, onBack, onAddToCart }: ProductDet
   const whatsappUrl = `https://wa.me/2250758000045?text=${whatsappMessage}`;
   const stockLabel =
     (product?.stock_quantity ?? 0) > 0
-      ? `${product?.stock_quantity ?? 0} en stock`
+      ? "En stock"
       : "Rupture de stock";
 
   return (
@@ -161,10 +148,6 @@ export function ProductDetailPage({ productId, onBack, onAddToCart }: ProductDet
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <p className="text-gray-500">Disponibilité</p>
                   <p className={`font-medium ${inStock ? "text-emerald-700" : "text-red-600"}`}>{stockLabel}</p>
-                </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
-                  <p className="text-gray-500">Dernière mise à jour</p>
-                  <p className="font-medium text-gray-900">{lastUpdateLabel}</p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <p className="text-gray-500">Code-barres</p>
