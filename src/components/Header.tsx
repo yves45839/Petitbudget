@@ -86,16 +86,16 @@ export function Header({
   return (
     <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 via-white to-red-600 shadow-lg">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between py-2.5">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-md">
+            <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-2 shadow-md">
               <ImageWithFallback
                 src={BRAND_ASSETS.logo}
                 alt={`Logo ${BRAND_NAME}`}
-                className="h-12 w-auto object-contain"
+                className="h-9 w-auto object-contain"
               />
               <div>
-                <h1 className="bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-2xl text-transparent">
+                <h1 className="bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-xl text-transparent">
                   {BRAND_NAME}
                 </h1>
                 <p className="text-xs text-gray-600">La sécurité n'est plus un luxe</p>
@@ -103,7 +103,7 @@ export function Header({
             </div>
           </div>
 
-          <div className="mx-8 max-w-2xl flex-1">
+          <div className="mx-6 max-w-2xl flex-1">
             <div className="relative">
               <input
                 type="text"
@@ -119,7 +119,7 @@ export function Header({
                     submitSearch(searchQuery);
                   }
                 }}
-                className="w-full rounded-full border-2 border-white bg-white/90 px-6 py-3 pr-12 shadow-md backdrop-blur-sm focus:border-blue-400 focus:outline-none"
+                className="w-full rounded-full border-2 border-white bg-white/90 px-6 py-2.5 pr-12 shadow-md backdrop-blur-sm focus:border-blue-400 focus:outline-none"
               />
               <button
                 type="button"
@@ -169,14 +169,14 @@ export function Header({
           </div>
 
           <div className="relative flex items-center gap-4">
-            <button className="flex items-center gap-2 rounded-full bg-white px-6 py-3 shadow-md transition-all hover:shadow-lg">
+            <button className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 shadow-md transition-all hover:shadow-lg">
               <User className="h-5 w-5 text-blue-600" />
               <span className="text-sm">Compte</span>
             </button>
             <button
               type="button"
               onClick={() => setIsCartOpen((current) => !current)}
-              className="relative flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-3 text-white shadow-md transition-all hover:shadow-lg"
+              className="relative flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2.5 text-white shadow-md transition-all hover:shadow-lg"
             >
               <ShoppingCart className="h-5 w-5" />
               <span>Panier</span>
