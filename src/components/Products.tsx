@@ -6,9 +6,15 @@ import { getDisplayPrices } from "../lib/pricing";
 
 type ProductsProps = {
   onProductClick: (productId: number, productReference: string) => void;
+  onAddToCart: (item: {
+    productId: number;
+    reference: string;
+    name: string;
+    unitPrice: number;
+  }) => void;
 };
 
-export function Products({ onProductClick }: ProductsProps) {
+export function Products({ onProductClick, onAddToCart }: ProductsProps) {
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -177,19 +183,44 @@ export function Products({ onProductClick }: ProductsProps) {
                               {inStock ? (
                                 <div className="flex gap-2">
                                   {requiresPriceRequest ? (
-                                    <span className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                                    <a
+                                      href={whatsappUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(event) => event.stopPropagation()}
+                                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                                    >
                                       <MessageCircle className="w-5 h-5" />
                                       Demande de prix
-                                    </span>
+                                    </a>
                                   ) : (
-                                    <span className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        onAddToCart({
+                                          productId: product.id,
+                                          reference: productReference,
+                                          name: product.name,
+                                          unitPrice: displayPrice,
+                                        });
+                                      }}
+                                      className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 rounded-full hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                                    >
                                       <ShoppingCart className="w-5 h-5" />
                                       Ajouter
-                                    </span>
+                                    </button>
                                   )}
-                                  <span className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-full hover:shadow-lg transition-all">
+                                  <a
+                                    href={whatsappUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(event) => event.stopPropagation()}
+                                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-full hover:shadow-lg transition-all inline-flex items-center justify-center"
+                                    aria-label={`Contacter le service commercial pour ${product.name}`}
+                                  >
                                     <MessageCircle className="w-5 h-5" />
-                                  </span>
+                                  </a>
                                 </div>
                               ) : (
                                 <a

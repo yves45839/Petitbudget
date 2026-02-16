@@ -19,6 +19,7 @@ type CartItem = {
 
 const PRODUCT_ROUTE_PATTERN = /^\/produits\/(\d+)(?:-[^/]+)?\/?$/;
 const WHATSAPP_PHONE = "2250758000045";
+const CART_STORAGE_KEY = "petitbudget-cart";
 
 const toSlug = (value: string) =>
   value
@@ -78,7 +79,31 @@ const buildCartConfirmationMessage = (cartItems: CartItem[]) => {
 
 export default function App() {
   const [route, setRoute] = useState(getCurrentRoute());
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
+      if (!savedCart) {
+        return [];
+      }
+
+      const parsed = JSON.parse(savedCart);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed.filter(
+        (item): item is CartItem =>
+          typeof item?.productId === "number" &&
+          typeof item?.reference === "string" &&
+          typeof item?.name === "string" &&
+          typeof item?.unitPrice === "number" &&
+          typeof item?.quantity === "number" &&
+          item.quantity > 0,
+      );
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     const handleNavigation = () => setRoute(getCurrentRoute());
@@ -97,6 +122,10 @@ export default function App() {
     () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
     [cartItems],
   );
+
+  useEffect(() => {
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const goToProductDetail = (productId: number, productReference: string) => {
     const referenceSlug = toSlug(productReference) || "sans-reference";
@@ -184,7 +213,7 @@ export default function App() {
           <Hero />
           <Brands />
           <Features />
-          <Products onProductClick={goToProductDetail} />
+          <Products onProductClick={goToProductDetail} onAddToCart={handleAddToCart} />
         </>
       )}
       <Footer />
