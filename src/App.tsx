@@ -210,10 +210,10 @@ export default function App() {
         />
       ) : (
         <>
-          <Hero />
           <Brands />
           <Features />
           <Products onProductClick={goToProductDetail} onAddToCart={handleAddToCart} />
+          <Hero />
         </>
       )}
       <Footer />
